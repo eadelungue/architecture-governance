@@ -1,0 +1,4 @@
+# DIRETRIZES DE ARQUITETURA ORIENTADA A EVENTOS
+- **Idempotência Obrigatória:** Todo consumidor de eventos (Lambdas, SQS/SNS listeners) DEVE ser desenhado de forma idempotente. A IA deve prever código que verifica se o evento (baseado no `MessageId`) já foi processado antes de executar a gravação no banco de dados.
+- **Dead Letter Queues (DLQ):** Todo fluxo de mensageria gerado deve prever arquiteturalmente o roteamento de falhas para uma DLQ após 3 tentativas malsucedidas.
+- **Tamanho de Payload:** Eventos não devem carregar o estado inteiro da entidade (Event Carried State Transfer), mas sim operar preferencialmente como Event Notification (carregando apenas o ID e o tipo de alteração), forçando o consumidor a buscar os dados atualizados na API de domínio se necessário.

@@ -1,0 +1,5 @@
+# DIRETRIZES DE API GATEWAY E BORDAS
+- **Contrato Front-Back:** Todo roteamento de entrada passa obrigatoriamente por um API Gateway. 
+- **Headers de Correlação:** Toda requisição de entrada receberá um header de correlação (ex: `X-Correlation-ID`). É **obrigatório** que os microserviços e BFFs em C# capturem este header e o repassem para qualquer chamada subsequente (outras APIs, filas AWS, banco de dados).
+- **Rate Limiting e Circuit Breaker:** Ao gerar código para chamadas HTTP de saída (ex: `HttpClient` no C#), inclua políticas de resiliência usando Polly (Retries exponenciais e Circuit Breaker). Nenhuma API interna deve falhar em cascata.
+- **Terminação SSL/TLS:** Assuma que o tráfego chega descriptografado no container/lambda apenas após passar pelo Gateway, mas a validação do token do Cognito deve ocorrer no nível da aplicação.
