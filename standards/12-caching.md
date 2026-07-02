@@ -5,7 +5,7 @@
 - Em caso de *Cache Miss*, a aplicação busca no banco, popula o cache e retorna ao usuário.
 
 ## 2. Invalidação e Consistência
-- **Event-Driven Invalidation:** Para transações financeiras, o cache deve ser invalidado ou atualizado através do consumo de eventos via RabbitMQ/SQS. Nunca confie apenas no TTL (Time-To-Live).
+- **Event-Driven Invalidation:** Para transações financeiras, o cache deve ser invalidado ou atualizado através do consumo de eventos via **Amazon SQS** (padrão de mensageria do projeto). Nunca confie apenas no TTL (Time-To-Live).
 - **TTL de Segurança:** Todo item no cache DEVE ter um TTL máximo (ex: 30 minutos) para evitar dados "zumbis" caso o evento de invalidação falhe.
 
 ## 3. Limitações de Free Tier
