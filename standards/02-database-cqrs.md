@@ -1,6 +1,17 @@
 # DIRETRIZES DE BANCO DE DADOS (DAPPER & CQRS)
 
-**REGRA ABSOLUTA:** O banco de dados é LEGADO e INTOCÁVEL. Você está ESTRITAMENTE PROIBIDO de criar novas tabelas, adicionar colunas, alterar tipos de dados ou gerar arquivos de *Migration* (ex: Entity Framework Migrations). Trabalhe APENAS com o esquema fornecido.
+> **Contexto arquitetural:** O Ledger Core possui banco de dados isolado (schema/instância dedicada). Nenhum serviço de produto acessa diretamente as tabelas do Ledger. Consulte `18-ledger-core-architecture.md` para detalhes da separação.
+
+## 0. Isolamento de Bancos de Dados
+
+- O **Ledger Core** possui seu próprio banco PostgreSQL (ou schema isolado). Suas tabelas são otimizadas para operações contábeis de alta performance.
+- Cada **serviço de produto** pode ter seu próprio banco/schema para estado de negócio, configurações e tabela Outbox.
+- É PROIBIDO qualquer serviço de produto fazer queries diretamente nas tabelas do Ledger. Toda consulta de saldo/extrato passa pela API síncrona do Ledger.
+- Connection pooling (PgBouncer ou RDS Proxy) é OBRIGATÓRIO em produção para o banco do Ledger.
+
+---
+
+**REGRA ABSOLUTA (banco legado de produto):** Para serviços que operam sobre bancos legados, você está ESTRITAMENTE PROIBIDO de criar novas tabelas, adicionar colunas, alterar tipos de dados ou gerar arquivos de *Migration* (ex: Entity Framework Migrations). Trabalhe APENAS com o esquema fornecido. Para o Ledger Core (banco novo), o schema é gerenciado via migrations controladas pela equipe de plataforma.
 
 ---
 
@@ -60,11 +71,15 @@ public async Task<int> CreateOrderAsync(CreateOrderCommand command, Cancellation
 
 ## 4. Transações Atômicas com Dapper
 
-Use transações explícitas sempre que um Command precisar alterar mais de uma tabela de forma atômica. Isso é **obrigatório** no padrão Outbox (ver `10-financial-transactions.md`).
+Use transações explícitas sempre que um Command precisar alterar mais de uma tabela de forma atômica.
+
+### 4.1 No Ledger Core (síncrono, sem Outbox)
+
+O Ledger Core executa transações ACID puras. Não há tabela Outbox no Ledger.
 
 ```csharp
-// ✅ Padrão obrigatório para transações — usado no padrão Outbox
-public async Task ProcessPaymentAsync(PaymentCommand command, CancellationToken ct)
+// ✅ Padrão para o Ledger Core — transação contábil pura
+public async Task<TransactionResult> ExecuteTransactionAsync(LedgerCommand command, CancellationToken ct)
 {
     using var connection = _connectionFactory.CreateConnection();
     connection.Open();
@@ -72,16 +87,72 @@ public async Task ProcessPaymentAsync(PaymentCommand command, CancellationToken 
 
     try
     {
-        // 1. Altera o estado da entidade principal
-        const string updateSql = @"
-            UPDATE tb_accounts
-            SET    balance = balance - @Amount
-            WHERE  id = @AccountId";
+        // 1. Lock da conta (serialização por conta)
+        const string lockSql = @"
+            SELECT balance FROM tb_accounts
+            WHERE id = @AccountId FOR UPDATE";
+
+        var currentBalance = await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(lockSql, new { command.AccountId }, transaction, cancellationToken: ct));
+
+        // 2. Débito na conta origem
+        const string debitSql = @"
+            UPDATE tb_accounts SET balance = balance - @Amount WHERE id = @DebitAccountId";
 
         await connection.ExecuteAsync(
-            new CommandDefinition(updateSql, command, transaction, cancellationToken: ct));
+            new CommandDefinition(debitSql, command, transaction, cancellationToken: ct));
 
-        // 2. Persiste o evento de outbox na MESMA transação
+        // 3. Crédito na conta destino
+        const string creditSql = @"
+            UPDATE tb_accounts SET balance = balance + @Amount WHERE id = @CreditAccountId";
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(creditSql, command, transaction, cancellationToken: ct));
+
+        // 4. Registra lançamento contábil
+        const string entrySql = @"
+            INSERT INTO tb_ledger_entries (debit_account_id, credit_account_id, amount, idempotency_key, created_at)
+            VALUES (@DebitAccountId, @CreditAccountId, @Amount, @IdempotencyKey, NOW())
+            RETURNING id";
+
+        var entryId = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(entrySql, command, transaction, cancellationToken: ct));
+
+        transaction.Commit();
+        return new TransactionResult(entryId, currentBalance - command.Amount);
+    }
+    catch
+    {
+        transaction.Rollback();
+        throw;
+    }
+}
+```
+
+### 4.2 Nos Serviços de Produto (com Outbox)
+
+Serviços de produto usam Outbox para propagar eventos APÓS confirmar a operação no Ledger (ver `10-financial-transactions.md`).
+
+```csharp
+// ✅ Padrão para Serviços de Produto — com Outbox local
+public async Task ProcessCashbackAsync(CashbackCommand command, CancellationToken ct)
+{
+    // 1. Chama o Ledger de forma síncrona
+    var ledgerResult = await _ledgerClient.ExecuteTransactionAsync(new
+    {
+        DebitAccountId = command.MerchantAccountId,
+        CreditAccountId = command.CustomerAccountId,
+        Amount = command.CashbackAmount,
+        IdempotencyKey = command.IdempotencyKey
+    }, ct);
+
+    // 2. Persiste evento Outbox no banco LOCAL do produto
+    using var connection = _connectionFactory.CreateConnection();
+    connection.Open();
+    using var transaction = connection.BeginTransaction();
+
+    try
+    {
         const string outboxSql = @"
             INSERT INTO tb_outbox_events (aggregate_id, event_type, payload, created_at)
             VALUES (@AggregateId, @EventType, @Payload::jsonb, NOW())";
@@ -89,10 +160,17 @@ public async Task ProcessPaymentAsync(PaymentCommand command, CancellationToken 
         await connection.ExecuteAsync(
             new CommandDefinition(outboxSql, new
             {
-                AggregateId = command.AccountId,
-                EventType   = "PaymentProcessed",
-                Payload     = JsonSerializer.Serialize(command)
+                AggregateId = command.CustomerAccountId,
+                EventType = "CashbackCredited",
+                Payload = JsonSerializer.Serialize(new { command.CustomerAccountId, command.CashbackAmount, ledgerResult.TransactionId })
             }, transaction, cancellationToken: ct));
+
+        // 3. Atualiza estado local do produto se necessário
+        const string statusSql = @"
+            UPDATE tb_cashback_requests SET status = 'completed', ledger_tx_id = @TxId WHERE id = @RequestId";
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(statusSql, new { TxId = ledgerResult.TransactionId, command.RequestId }, transaction, cancellationToken: ct));
 
         transaction.Commit();
     }
