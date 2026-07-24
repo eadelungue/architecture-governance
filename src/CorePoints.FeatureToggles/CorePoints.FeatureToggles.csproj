@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>CorePoints.FeatureToggles</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.*" />
+    <PackageReference Include="Npgsql" Version="8.0.*" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.*" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Provides ASP.NET Core types: IEndpointFilter, Http.Abstractions, DI, Logging, etc. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

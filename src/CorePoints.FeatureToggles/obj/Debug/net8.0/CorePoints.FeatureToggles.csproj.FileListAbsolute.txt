@@ -1,0 +1,13 @@
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\bin\Debug\net8.0\CorePoints.FeatureToggles.deps.json
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\bin\Debug\net8.0\CorePoints.FeatureToggles.dll
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\bin\Debug\net8.0\CorePoints.FeatureToggles.pdb
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\obj\Debug\net8.0\CorePoints.FeatureToggles.csproj.AssemblyReference.cache
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\obj\Debug\net8.0\CorePoints.FeatureToggles.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\obj\Debug\net8.0\CorePoints.FeatureToggles.AssemblyInfoInputs.cache
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\obj\Debug\net8.0\CorePoints.FeatureToggles.AssemblyInfo.cs
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\obj\Debug\net8.0\CorePoints.FeatureToggles.csproj.CoreCompileInputs.cache
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\obj\Debug\net8.0\CorePoints.FeatureToggles.sourcelink.json
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\obj\Debug\net8.0\CorePoints.FeatureToggles.dll
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\obj\Debug\net8.0\refint\CorePoints.FeatureToggles.dll
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\obj\Debug\net8.0\CorePoints.FeatureToggles.pdb
+C:\Projetos\architecture-governance\src\CorePoints.FeatureToggles\obj\Debug\net8.0\ref\CorePoints.FeatureToggles.dll
