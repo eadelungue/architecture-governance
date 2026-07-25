@@ -1,0 +1,13 @@
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\obj\Debug\net8.0\CorePoints.Resilience.csproj.AssemblyReference.cache
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\obj\Debug\net8.0\CorePoints.Resilience.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\obj\Debug\net8.0\CorePoints.Resilience.AssemblyInfoInputs.cache
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\obj\Debug\net8.0\CorePoints.Resilience.AssemblyInfo.cs
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\obj\Debug\net8.0\CorePoints.Resilience.csproj.CoreCompileInputs.cache
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\obj\Debug\net8.0\CorePoints.Resilience.sourcelink.json
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\bin\Debug\net8.0\CorePoints.Resilience.deps.json
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\bin\Debug\net8.0\CorePoints.Resilience.dll
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\bin\Debug\net8.0\CorePoints.Resilience.pdb
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\obj\Debug\net8.0\CorePoints.Resilience.dll
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\obj\Debug\net8.0\refint\CorePoints.Resilience.dll
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\obj\Debug\net8.0\CorePoints.Resilience.pdb
+C:\Projetos\architecture-governance\src\CorePoints.Resilience\obj\Debug\net8.0\ref\CorePoints.Resilience.dll
