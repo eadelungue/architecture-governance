@@ -1,0 +1,18 @@
+# .NET (caso algum código acabe aqui por engano)
+bin/
+obj/
+src/
+tests/
+*.dll
+*.pdb
+*.exe
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# OS
+Thumbs.db
+.DS_Store
